@@ -16,15 +16,17 @@ try {
 
 export const editProfile=async (req,res)=>{
     try {
-        let {name}=req.body
+        let {name, about}=req.body
         let image;
         if(req.file){
             image=await uploadOnCloudinary(req.file.path)
         }
-        let user=await User.findByIdAndUpdate(req.userId,{
-           name,
-           image 
-        },{new:true})
+        
+        let updateData = { name };
+        if (about !== undefined) updateData.about = about;
+        if (image) updateData.image = image;
+        
+        let user=await User.findByIdAndUpdate(req.userId, updateData, {new:true})
 
         if(!user){
             return res.status(400).json({message:"user not found"})
@@ -32,6 +34,7 @@ export const editProfile=async (req,res)=>{
 
         return res.status(200).json(user)
     } catch (error) {
+        console.log("Profile update error:", error);
         return res.status(500).json({message:`profile error ${error}`})
     }
 }

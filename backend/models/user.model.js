@@ -4,6 +4,10 @@ const userSchema=new mongoose.Schema({
     name:{
         type:String,
     },
+    about:{
+        type:String,
+        default:""
+    },
     userName:{
         type:String,
         required:true,
