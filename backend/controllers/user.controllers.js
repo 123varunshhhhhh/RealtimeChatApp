@@ -18,8 +18,15 @@ export const editProfile=async (req,res)=>{
     try {
         let {name, about}=req.body
         let image;
+        
+        // Only try to upload if file exists and Cloudinary is configured
         if(req.file){
-            image=await uploadOnCloudinary(req.file.path)
+            try {
+                image=await uploadOnCloudinary(req.file.path)
+            } catch (cloudinaryError) {
+                console.log("Cloudinary upload failed:", cloudinaryError);
+                // Continue without image upload
+            }
         }
         
         let updateData = { name };

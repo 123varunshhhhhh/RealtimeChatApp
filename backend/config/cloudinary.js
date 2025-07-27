@@ -12,6 +12,12 @@ cloudinary.v2.config({
 
 const uploadOnCloudinary = async (filePath) => {
   try {
+    // Check if Cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.log("Cloudinary not configured, skipping image upload");
+      return null;
+    }
+
     const result = await cloudinary.v2.uploader.upload(filePath, {
       resource_type: "auto", // ✅ Support image/audio/video
     });
@@ -20,8 +26,12 @@ const uploadOnCloudinary = async (filePath) => {
     return result.secure_url;
   } catch (error) {
     console.error("Cloudinary error:", error);
+    // Clean up file even if upload fails
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
     throw {
-      message: "Invalid image file",
+      message: "Image upload failed",
       name: "Error",
       http_code: 400
     };
