@@ -1,23 +1,30 @@
-import axios from "axios"
-import { useEffect } from "react"
-import { serverUrl } from "../main"
-import { useDispatch, useSelector } from "react-redux"
-import { setOtherUsers, setUserData } from "../redux/userSlice"
+// customHooks/getOtherUsers.jsx
+import { useEffect } from "react";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { setOtherUsers } from "../redux/userSlice";
+import { serverUrl } from "../main";
 
-const getOtherUsers=()=>{
-    let dispatch=useDispatch()
-    let {userData}=useSelector(state=>state.user)
-    useEffect(()=>{
-        const fetchUser=async ()=>{
-            try {
-                let result=await axios.get(`${serverUrl}/api/user/others`,{withCredentials:true})
-                dispatch(setOtherUsers(result.data))
-            } catch (error) {
-                console.log(error)
-            }
-        }
-        fetchUser()
-    },[userData])
-}
+const GetOtherUsers = () => {
+  const dispatch = useDispatch();
+  const { userData } = useSelector((state) => state.user);
 
-export default getOtherUsers
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get(`${serverUrl}/api/user/others`, {
+          withCredentials: true,
+        });
+        dispatch(setOtherUsers(res.data));
+      } catch (err) {
+        console.error("❌ Error fetching other users:", err);
+      }
+    };
+
+    if (userData?._id) fetchUsers();
+  }, [userData, dispatch]);
+
+  return null;
+};
+
+export default GetOtherUsers;

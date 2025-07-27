@@ -1,37 +1,45 @@
+// frontend/src/redux/userSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
-const userSlice=createSlice({
-   name:"user",
-   initialState:{
-    userData:null,
-    otherUsers:null,
-    selectedUser:null,
-    socket:null,
-    onlineUsers:null,
-    searchData:null
-   },  
-   reducers:{
-    setUserData:(state,action)=>{
-   state.userData=action.payload
+const userSlice = createSlice({
+  name: "user",
+  initialState: {
+    userData: null,
+    otherUsers: [],
+    selectedUser: null,
+    onlineUsers: [],
+    searchData: [],
+    socketConnected: false, // ✅ add this
+  },
+  reducers: {
+    setUserData: (state, action) => {
+      state.userData = action.payload;
     },
-    setOtherUsers:(state,action)=>{
-      state.otherUsers=action.payload
-       },
-       setSelectedUser:(state,action)=>{
-         state.selectedUser=action.payload
-          }
-          ,
-          setSocket:(state,action)=>{
-            state.socket=action.payload
-             },
-             setOnlineUsers:(state,action)=>{
-              state.onlineUsers=action.payload
-               },
-               setSearchData:(state,action)=>{
-                state.searchData=action.payload
-                 }
-   }
-})
+    setOtherUsers: (state, action) => {
+      state.otherUsers = Array.isArray(action.payload) ? action.payload : [];
+    },
+    setSelectedUser: (state, action) => {
+      state.selectedUser = action.payload;
+    },
+    setOnlineUsers: (state, action) => {
+      state.onlineUsers = Array.isArray(action.payload) ? action.payload : [];
+    },
+    setSearchData: (state, action) => {
+      state.searchData = Array.isArray(action.payload) ? action.payload : [];
+    },
+    setSocketConnected: (state, action) => {
+      state.socketConnected = action.payload; // ✅ this line fixes warning
+    }
+  }
+});
 
-export const {setUserData, setOtherUsers,setSelectedUser,setSocket,setOnlineUsers,setSearchData}=userSlice.actions
-export default userSlice.reducer
+export const {
+  setUserData,
+  setOtherUsers,
+  setSelectedUser,
+  setOnlineUsers,
+  setSearchData,
+  setSocketConnected // ✅ export this
+} = userSlice.actions;
+
+export default userSlice.reducer;

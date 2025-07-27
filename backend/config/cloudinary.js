@@ -1,20 +1,31 @@
-import { v2 as cloudinary } from 'cloudinary';
-import fs from "fs"
-const uploadOnCloudinary=async (filePath)=>{
-cloudinary.config({
-    cloud_name:process.env.CLOUD_NAME, 
-    api_key:process.env.API_KEY, 
-    api_secret: process.env.API_SECRET
-})
-try {
-    const uploadResult = await cloudinary.uploader.upload(filePath) 
-    fs.unlinkSync(filePath)
-    return uploadResult.secure_url
+// ✅ uploadOnCloudinary.js
+import dotenv from "dotenv";
+dotenv.config();
+import cloudinary from "cloudinary";
+import fs from "fs";
 
-} catch (error) {
-    fs.unlinkSync(filePath)
-    console.log(error)
-}
-}
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-export default uploadOnCloudinary
+const uploadOnCloudinary = async (filePath) => {
+  try {
+    const result = await cloudinary.v2.uploader.upload(filePath, {
+      resource_type: "auto", // ✅ Support image/audio/video
+    });
+
+    fs.unlinkSync(filePath); // ✅ Cleanup temp file
+    return result.secure_url;
+  } catch (error) {
+    console.error("Cloudinary error:", error);
+    throw {
+      message: "Invalid image file",
+      name: "Error",
+      http_code: 400
+    };
+  }
+};
+
+export default uploadOnCloudinary;
