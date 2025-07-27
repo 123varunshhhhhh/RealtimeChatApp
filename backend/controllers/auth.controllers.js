@@ -58,8 +58,9 @@ const token=await genToken(user._id)
    res.cookie("token",token,{
     httpOnly:true,
     maxAge:7*24*60*60*1000,
-    sameSite:"Strict",
-    secure: process.env.NODE_ENV === "production"
+    sameSite:"None",
+    secure: process.env.NODE_ENV === "production",
+    path: "/"
    })
 
    return res.status(201).json(user)
@@ -87,8 +88,9 @@ export const login=async (req,res)=>{
  res.cookie("token",token,{
      httpOnly:true,
      maxAge:7*24*60*60*1000,
-     sameSite:"Strict",
-     secure: process.env.NODE_ENV === "production"
+     sameSite:"None",
+     secure: process.env.NODE_ENV === "production",
+     path: "/"
     })
  
     return res.status(200).json(user)
