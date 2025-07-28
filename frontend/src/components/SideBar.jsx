@@ -10,7 +10,7 @@ import { FaComments } from "react-icons/fa";
 import { MdGroupAdd } from "react-icons/md";
 import { serverUrl } from '../main';
 import axios from 'axios';
-import { setOtherUsers, setSearchData, setSelectedUser, setUserData } from '../redux/userSlice';
+import { setOtherUsers, setSearchData, setSelectedUser, setUserData, setConversations } from '../redux/userSlice';
 import { setGroups, selectGroup } from '../redux/groupSlice';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,9 +23,10 @@ import StoryUploader from './StoryUploader';
 import StoryViewer from './StoryViewer';
 import GroupCreateModal from './GroupCreateModal';
 import kiraLogo from "../assets/kira-logo.svg";
+import GetConversations from '../customHooks/getConversations';
 
 function SideBar() {
-  const { userData, otherUsers, onlineUsers, selectedUser, searchData } = useSelector((state) => state.user);
+  const { userData, otherUsers, onlineUsers, selectedUser, searchData, conversations } = useSelector((state) => state.user);
   const { groups, selectedGroup } = useSelector((state) => state.group);
   const [searchInput, setSearchInput] = useState("");
   const [darkMode, setDarkMode] = useState(true);
@@ -190,6 +191,7 @@ function SideBar() {
     <div
       className={`w-full md:w-[30%] h-screen flex flex-col relative ${mainGradientClass} overflow-hidden`}
     >
+      <GetConversations />
       {/* Header Section */}
       <div
         className={`w-full p-4 md:p-6 pb-2 md:pb-2 rounded-b-[30px] shadow-xl flex flex-col justify-start relative z-40 ${headerGradientClass}`}
@@ -456,40 +458,43 @@ function SideBar() {
         {/* Individual Chats Section */}
         <div>
           <h3 className="text-md font-semibold text-gray-100 mb-3">Individual Chats</h3>
-          {otherUsers && otherUsers.length > 0 ? (
-            <>
-              {otherUsers.map((user) => (
-                <motion.div
-                  key={user._id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3 }}
-                  whileHover={{ scale: 1.02, x: 5, boxShadow: "0 8px 25px rgba(0,0,0,0.2)" }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`w-full h-16 flex items-center gap-4 shadow-lg rounded-full cursor-pointer p-2 mb-3 transform transition-all duration-200 ease-in-out
-                    ${darkMode ? "bg-white/10 hover:bg-white/20 text-white" : "bg-white hover:bg-pink-100 text-gray-800"}
-                    ${selectedUser?._id === user._id ? (darkMode ? "bg-white/20 ring-2 ring-blue-400" : "bg-pink-100 ring-2 ring-pink-500") : ""}
-                  `}
-                  onClick={() => handleUserClick(user)}
-                >
-                  <div className="relative rounded-full bg-white shadow-md flex justify-center items-center flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex justify-center items-center">
-                      <img
-                        src={user.image || dp}
-                        alt={user.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    {onlineUsers?.includes(user._id) && (
-                      <span className="w-3 h-3 rounded-full absolute bottom-0.5 right-0.5 bg-green-500 border-2 border-white"></span>
-                    )}
+          {conversations && conversations.length > 0 ? (
+            conversations.map((conversation) => (
+              <motion.div
+                key={conversation.conversationId}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+                whileHover={{ scale: 1.02, x: 5, boxShadow: "0 8px 25px rgba(0,0,0,0.2)" }}
+                whileTap={{ scale: 0.98 }}
+                className={`w-full h-16 flex items-center gap-4 shadow-lg rounded-full cursor-pointer p-2 mb-3 transform transition-all duration-200 ease-in-out
+                  ${darkMode ? "bg-white/10 hover:bg-white/20 text-white" : "bg-white hover:bg-pink-100 text-gray-800"}
+                  ${selectedUser?._id === conversation.user?._id ? (darkMode ? "bg-white/20 ring-2 ring-blue-400" : "bg-pink-100 ring-2 ring-pink-500") : ""}
+                `}
+                onClick={() => dispatch(setSelectedUser(conversation.user))}
+              >
+                <div className="relative rounded-full bg-white shadow-md flex justify-center items-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full overflow-hidden flex justify-center items-center">
+                    <img
+                      src={conversation.user?.image || dp}
+                      alt={conversation.user?.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <h1 className="font-semibold text-lg overflow-hidden whitespace-nowrap text-ellipsis flex-grow">
-                    {user.name || user.userName}
-                  </h1>
-                </motion.div>
-              ))}
-            </>
+                  {onlineUsers?.includes(conversation.user?._id) && (
+                    <span className="w-3 h-3 rounded-full absolute bottom-0.5 right-0.5 bg-green-500 border-2 border-white"></span>
+                  )}
+                </div>
+                <h1 className="font-semibold text-lg overflow-hidden whitespace-nowrap text-ellipsis flex-grow">
+                  {conversation.user?.name || conversation.user?.userName}
+                </h1>
+                {conversation.unreadCount > 0 && (
+                  <span className="ml-auto w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                    {conversation.unreadCount}
+                  </span>
+                )}
+              </motion.div>
+            ))
           ) : (
             <p className="text-gray-400 text-center mt-8">
               {searchInput.trim() ? "No search results found." : "No chats available. Start a new conversation!"}
