@@ -34,7 +34,7 @@ const sendEmail = async (to, subject, text) => {
 
 export const signUp=async (req,res)=>{
    try {
-    const {userName,email,password}=req.body
+    const {userName, email, password, name}=req.body
     const checkUserByUserName=await User.findOne({userName})
     if(checkUserByUserName){
         return res.status(400).json({message:"userName already exist"})
@@ -50,7 +50,10 @@ if(password.length<6){
 const hashedPassword=await bcrypt.hash(password,10)
 
 const user=await User.create({
-    userName,email,password:hashedPassword
+    userName,
+    email,
+    password:hashedPassword,
+    name: name || userName // Use userName as name if name is not provided
 })
 
 const token=await genToken(user._id)
@@ -67,6 +70,7 @@ const token=await genToken(user._id)
 
 
    } catch (error) {
+    console.error("Signup error:", error);
     return res.status(500).json({message:`signup error ${error}`})
    } 
 }

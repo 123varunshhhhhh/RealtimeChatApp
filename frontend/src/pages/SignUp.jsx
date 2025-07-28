@@ -51,6 +51,7 @@ function SignUp() {
 
   const [show, setShow] = useState(false);
   const [userName, setUserName] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,13 +63,15 @@ function SignUp() {
     try {
       const result = await axios.post(
         `${serverUrl}/api/auth/signup`,
-        { userName, email, password },
+        { userName, name, email, password },
         { withCredentials: true }
       );
       dispatch(setUserData(result.data));
       navigate("/profile");
       setEmail("");
       setPassword("");
+      setUserName("");
+      setName("");
       setErr("");
     } catch (error) {
       setErr(error?.response?.data?.message || "Something went wrong");
@@ -138,6 +141,15 @@ function SignUp() {
 
         {/* Form */}
         <form onSubmit={handleSignUp} className="flex flex-col gap-6">
+          <input
+            type="text"
+            placeholder="Full Name"
+            className="w-full px-5 py-3 rounded-xl border border-gray-300 focus:border-[#0284c7] focus:ring-2 focus:ring-[#0ea5e9] outline-none text-gray-700 transition hover:shadow-[0_0_10px_#0ea5e9]"
+            onChange={(e) => setName(e.target.value)}
+            value={name}
+            required
+          />
+
           <input
             type="text"
             placeholder="Username"
