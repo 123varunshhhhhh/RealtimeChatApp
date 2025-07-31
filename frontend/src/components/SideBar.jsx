@@ -153,11 +153,25 @@ function SideBar() {
     }
   }, [dispatch]);
 
+  // Fetch other users if not already loaded
+  const fetchOtherUsers = useCallback(async () => {
+    try {
+      const response = await axios.get(`${serverUrl}/api/user/others`, { withCredentials: true });
+      dispatch(setOtherUsers(response.data));
+    } catch (error) {
+      console.error("Failed to fetch other users:", error);
+    }
+  }, [dispatch]);
+
   useEffect(() => {
     if (userData?._id) {
       fetchGroups();
+      // Also fetch other users if they're not already loaded
+      if (!otherUsers || otherUsers.length === 0) {
+        fetchOtherUsers();
+      }
     }
-  }, [userData, fetchGroups]);
+  }, [userData, fetchGroups, fetchOtherUsers, otherUsers]);
 
   // Listen for group messages read events
   useEffect(() => {

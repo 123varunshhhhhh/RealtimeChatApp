@@ -8,6 +8,42 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Cleanup expired stories
+const cleanupExpiredStories = async () => {
+    try {
+        const expiredStories = await Story.find({
+            expiresAt: { $lt: new Date() }
+        });
+        
+        if (expiredStories.length > 0) {
+            // Delete files from server
+            for (const story of expiredStories) {
+                if (story.mediaUrl && story.mediaUrl.startsWith('/uploads/')) {
+                    const filePath = path.join(__dirname, '..', story.mediaUrl);
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    }
+                }
+            }
+            
+            // Delete from database
+            await Story.deleteMany({
+                expiresAt: { $lt: new Date() }
+            });
+            
+            console.log(`Cleaned up ${expiredStories.length} expired stories`);
+        }
+    } catch (error) {
+        console.error('Error cleaning up expired stories:', error);
+    }
+};
+
+// Run cleanup every 5 minutes instead of every hour for more responsive cleanup
+setInterval(cleanupExpiredStories, 5 * 60 * 1000);
+
+// Also run cleanup on startup
+cleanupExpiredStories();
+
 // POST: Upload new story
 export const uploadStory = async (req, res) => {
     try {
@@ -25,7 +61,7 @@ export const uploadStory = async (req, res) => {
             mediaUrl: `/${relativePath}`,
             mediaType: req.file.mimetype.startsWith('image') ? 'image' : 'video',
             caption: req.body.caption || '',
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
         });
 
         await newStory.save();
@@ -53,6 +89,9 @@ export const uploadStory = async (req, res) => {
 // GET: Fetch active stories for the feed (other users' stories)
 export const getStoryFeed = async (req, res) => {
     try {
+        // Clean up expired stories first
+        await cleanupExpiredStories();
+        
         // Exclude the current user's stories from the main feed if you want to show 'My Story' separately
         const stories = await Story.find({
             userId: { $ne: req.userId }, // Exclude current user's stories
@@ -84,6 +123,9 @@ export const getStoryFeed = async (req, res) => {
 export const getMyStory = async (req, res) => {
     try {
         const userId = req.userId; // Assuming req.userId is set by your isAuth middleware
+
+        // Clean up expired stories first
+        await cleanupExpiredStories();
 
         const story = await Story.findOne({
             userId: userId,

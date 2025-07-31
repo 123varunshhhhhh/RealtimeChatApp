@@ -3,6 +3,7 @@ import User from "../models/user.model.js"
 import bcrypt from "bcryptjs"
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { io } from "../socket/socket.js";
 
 // Utility to send email
 const sendEmail = async (to, subject, text) => {
@@ -65,6 +66,9 @@ const token=await genToken(user._id)
     secure: process.env.NODE_ENV === "production",
     path: "/"
    })
+
+   // Notify all connected users about the new user
+   io.emit("newUserCreated", { user: { _id: user._id, name: user.name, userName: user.userName, image: user.image } });
 
    return res.status(201).json(user)
 

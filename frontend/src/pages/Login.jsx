@@ -31,18 +31,27 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErr("");
     try {
       const result = await axios.post(
        `${serverUrl}/api/auth/login`,
         { email, password },
         { withCredentials: true }
       );
+      
+      // Set user data first
       dispatch(setUserData(result.data));
       dispatch(setSelectedUser(null));
-      navigate("/");
+      
+      // Clear form
       setEmail("");
       setPassword("");
-      setErr("");
+      
+      // Navigate after a small delay to ensure state is updated
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 100);
+      
     } catch (error) {
       setErr(error?.response?.data?.message || "Something went wrong");
     }

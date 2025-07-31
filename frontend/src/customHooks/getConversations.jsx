@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { setConversations } from "../redux/userSlice";
@@ -7,6 +7,7 @@ import { serverUrl } from "../main";
 const GetConversations = () => {
   const dispatch = useDispatch();
   const { userData } = useSelector((state) => state.user);
+  const fetchTimeoutRef = useRef(null);
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -22,10 +23,24 @@ const GetConversations = () => {
     };
 
     if (userData?._id) {
-      console.log("🔄 Fetching conversations for user:", userData._id);
-      fetchConversations();
+      // Clear any existing timeout
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+      
+      // Add a small delay to ensure user is fully authenticated
+      fetchTimeoutRef.current = setTimeout(() => {
+        console.log("🔄 Fetching conversations for user:", userData._id);
+        fetchConversations();
+      }, 1000);
     }
-  }, [userData, dispatch]);
+
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, [userData?._id, dispatch]);
 
   return null;
 };
